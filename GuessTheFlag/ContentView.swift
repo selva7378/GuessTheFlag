@@ -11,7 +11,14 @@ struct ContentView: View {
     @State private var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Spain", "UK", "Ukraine", "US"].shuffled()
     @State private var correctAnswer = Int.random(in: 0...2)
     @State private var showingScore = false
-    @State private var scoreTitle = ""
+    @State private var alertScoreTitle = ""
+    @State private var alertScoreMessage = ""
+    @State private var questionCount = 0
+    @State private var isGameOverAlert = false
+//    @State private var isGame
+
+    
+    @State private var score = 0
 
     var body: some View {
         ZStack {
@@ -22,7 +29,7 @@ struct ContentView: View {
                 .ignoresSafeArea()
             VStack {
                 Spacer()
-                Text("Guess the Flag")
+                Text("Guess the Flag: \(questionCount)/8")
                 //Tip: Asking for bold fonts is so common there’s actually a small shortcut: .font(.largeTitle.bold()).
                     .font(.largeTitle.weight(.bold))
                     .foregroundStyle(.white)
@@ -53,32 +60,62 @@ struct ContentView: View {
                 .clipShape(.rect(cornerRadius: 20))
                 Spacer()
                 Spacer()
-                Text("Score: ???")
+                Text("Score: \(score)")
                     .foregroundStyle(.white)
                     .font(.title.bold())
                 Spacer()
             }
             .padding()
-        }.alert(scoreTitle, isPresented: $showingScore) {
+        }
+        .alert(alertScoreTitle, isPresented: $showingScore) {
             Button("Continue", action: askQuestion)
         } message: {
-            Text("Your score is ???")
+            Text(alertScoreMessage)
+        }
+        .alert("Game Over", isPresented: $isGameOverAlert){
+            Button("Restart", action: reset)
+        } message: {
+            Text("You scored \(score) out of 8")
         }
     }
     
     func flagTapped(_ number: Int) {
         if number  == correctAnswer {
-            scoreTitle = "Correct"
+            alertScoreTitle = "Correct"
+            score += 1
+            questionCount += 1
+            alertScoreMessage = "Your score is \(score)"
+        
         } else {
-            scoreTitle = "Wrong"
+            alertScoreTitle = "Wrong"
+            questionCount += 1
+            alertScoreMessage = "Wrong! That’s the flag of \(countries[number])"
         }
         
         showingScore = true
     }
     
     func askQuestion() {
+        if questionCount == 8 {
+            isGameOverAlert = true
+        } else {
+            countries.shuffle()
+            correctAnswer = Int.random(in: 0...2)
+        }
+    }
+    
+    func reset() {
+        questionCount = 0
+        score = 0
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+        showingScore = false
+        alertScoreTitle = ""
+        alertScoreMessage = ""
+        isGameOverAlert = false
+    //    @State private var isGame
+
+        
     }
 }
 
